@@ -16,6 +16,10 @@ Port Map is a local-first application for documenting network switches, physical
 > [!IMPORTANT]
 > All data stays in the browser. No account, server, telemetry service, or external database is required.
 
+Port Map is local-first: it has no account system, backend, or telemetry. It
+documents user-entered network data but does not monitor switches. SNMP
+discovery is not currently implemented.
+
 ![Port Map physical switch view](docs/screenshots/port-map.png)
 
 ## Why Port Map?
@@ -119,7 +123,7 @@ Browser data is scoped to the application origin and does not synchronize across
 
 ## Quality gates
 
-Every pull request runs installation, linting, strict TypeScript checks, unit tests, and a production build in GitHub Actions. The browser smoke test covers initial demo creation, port editing, refresh persistence, and theme switching.
+Every pull request runs installation, linting, strict TypeScript checks, unit tests, a production build, and a separate Playwright E2E job in GitHub Actions. The browser suite covers initial demo creation, address validation and normalization, port and bulk editing, refresh persistence, switch and VLAN editing, guarded import, automatic backup and restore, and theme switching.
 
 ## Roadmap
 
