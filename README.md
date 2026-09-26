@@ -8,7 +8,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
 [![Local first](https://img.shields.io/badge/data-local--first-16845b)](#data-and-privacy)
 
-[Open live demo](https://rahmankutlu.github.io/port-map/) · [Download v0.1.0](https://github.com/rahmankutlu/port-map/releases/tag/v0.1.0) · [Report an issue](https://github.com/rahmankutlu/port-map/issues/new/choose)
+[Open live demo](https://rahmankutlu.github.io/port-map/) · [Download v0.1.1](https://github.com/rahmankutlu/port-map/releases/tag/v0.1.1) · [Report an issue](https://github.com/rahmankutlu/port-map/issues/new/choose)
 </div>
 
 Port Map is a local-first application for documenting network switches, physical ports, VLAN assignments, PoE endpoints, and connected devices. It gives IT technicians, system administrators, and NOC teams a compact operational view without requiring a server or account.
