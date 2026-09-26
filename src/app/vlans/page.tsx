@@ -64,6 +64,16 @@ export default function VlansPage() {
           : value.ports;
       return {
         ...value,
+        switches:
+          editingId !== null && editingId !== draft.id
+            ? value.switches.map((networkSwitch) => ({
+                ...networkSwitch,
+                managementVlan:
+                  networkSwitch.managementVlan === editingId
+                    ? draft.id
+                    : networkSwitch.managementVlan,
+              }))
+            : value.switches,
         vlans:
           editingId === null
             ? [...value.vlans, result.data].sort((a, b) => a.id - b.id)
@@ -88,12 +98,19 @@ export default function VlansPage() {
       }));
       return {
         ...value,
+        switches: value.switches.map((networkSwitch) => ({
+          ...networkSwitch,
+          managementVlan:
+            networkSwitch.managementVlan === remove.id
+              ? null
+              : networkSwitch.managementVlan,
+        })),
         vlans: value.vlans.filter((item) => item.id !== remove.id),
         ports,
         devices: devicesFromPorts(ports),
       };
     });
-    notify("VLAN removed and port references cleared");
+    notify("VLAN removed and references cleared");
     setRemove(null);
   };
   return (

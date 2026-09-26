@@ -63,6 +63,47 @@ describe("workspace operations", () => {
     expect(restored.switches).toHaveLength(3);
     expect(restored.ports).toHaveLength(96);
   });
+
+  it("discards imported device records and rebuilds them from ports", () => {
+    const source = createDemoWorkspace();
+    const input = JSON.parse(serializeWorkspace(source)) as Record<
+      string,
+      unknown
+    >;
+    input.devices = [{ arbitrary: "untrusted" }];
+    const restored = parseWorkspaceJson(JSON.stringify(input));
+    expect(restored.devices).toEqual(source.devices);
+    expect(restored.devices).toHaveLength(
+      source.ports.filter((port) => port.connectedDevice).length,
+    );
+  });
+
+  it("normalizes imported MAC addresses before rebuilding devices", () => {
+    const source = createDemoWorkspace();
+    source.ports[0].macAddress = "00-1a-2b-3c-4d-5e";
+    const restored = parseWorkspaceJson(JSON.stringify(source));
+    expect(restored.ports[0].macAddress).toBe("00:1A:2B:3C:4D:5E");
+    expect(
+      restored.devices.find((item) => item.portId === source.ports[0].id)
+        ?.macAddress,
+    ).toBe("00:1A:2B:3C:4D:5E");
+  });
+
+  it("reports invalid relations with human-readable context", () => {
+    const source = createDemoWorkspace();
+    source.ports[0].vlanId = 4094;
+    expect(() => parseWorkspaceJson(JSON.stringify(source))).toThrow(
+      "Port 1 on CORE-SW-01 references missing access VLAN 4094",
+    );
+  });
+
+  it("reports invalid network addresses without exposing Zod paths", () => {
+    const source = createDemoWorkspace();
+    source.ports[0].macAddress = "not-a-mac";
+    expect(() => parseWorkspaceJson(JSON.stringify(source))).toThrow(
+      "Port 1 on CORE-SW-01: must be a MAC address",
+    );
+  });
   it("rejects malformed and unsupported imports", () => {
     expect(() => parseWorkspaceJson("not json")).toThrow("not valid JSON");
     expect(() =>

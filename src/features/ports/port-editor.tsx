@@ -2,7 +2,14 @@
 import { useState, type FormEvent } from "react";
 import { Activity, Cable, Clock3, Power, X } from "lucide-react";
 import type { Port, Vlan } from "@/domain/models";
-import { deviceTypes, portStatuses, portTypes, speeds } from "@/domain/models";
+import {
+  deviceTypes,
+  getMissingPortVlanReferences,
+  portSchema,
+  portStatuses,
+  portTypes,
+  speeds,
+} from "@/domain/models";
 import { Badge, Button, Field, Input, Select, Textarea } from "@/components/ui";
 
 export function PortEditor({
@@ -17,11 +24,28 @@ export function PortEditor({
   onSave: (changes: Partial<Port>) => void;
 }) {
   const [draft, setDraft] = useState(port);
+  const [error, setError] = useState("");
   const set = <K extends keyof Port>(key: K, value: Port[K]) =>
     setDraft((item) => ({ ...item, [key]: value }));
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    onSave(draft);
+    setError("");
+    const result = portSchema.safeParse(draft);
+    if (!result.success) {
+      setError(result.error.issues[0]?.message ?? "Review the port details.");
+      return;
+    }
+    const missingVlan = getMissingPortVlanReferences(
+      result.data,
+      new Set(vlans.map((vlan) => vlan.id)),
+    )[0];
+    if (missingVlan) {
+      setError(
+        `${missingVlan.label[0].toUpperCase()}${missingVlan.label.slice(1)} VLAN ${missingVlan.id} does not exist.`,
+      );
+      return;
+    }
+    onSave(result.data);
   };
   return (
     <div
@@ -81,6 +105,11 @@ export function PortEditor({
         </div>
         <form onSubmit={submit}>
           <div className="drawer-body">
+            {error && (
+              <p className="form-error" role="alert">
+                {error}
+              </p>
+            )}
             <div className="form-grid two">
               <Field label="Port name">
                 <Input
@@ -185,6 +214,7 @@ export function PortEditor({
                     value={draft.ipAddress}
                     onChange={(e) => set("ipAddress", e.target.value)}
                     placeholder="10.20.1.42"
+                    aria-invalid={Boolean(error) || undefined}
                   />
                 </Field>
                 <Field label="MAC address">
@@ -192,6 +222,7 @@ export function PortEditor({
                     value={draft.macAddress}
                     onChange={(e) => set("macAddress", e.target.value)}
                     placeholder="00:00:00:00:00:00"
+                    aria-invalid={Boolean(error) || undefined}
                   />
                 </Field>
                 <Field label="Speed">
@@ -227,7 +258,13 @@ export function PortEditor({
                   <input
                     type="checkbox"
                     checked={draft.poeEnabled}
-                    onChange={(e) => set("poeEnabled", e.target.checked)}
+                    onChange={(e) =>
+                      setDraft((item) => ({
+                        ...item,
+                        poeEnabled: e.target.checked,
+                        poePower: e.target.checked ? item.poePower : null,
+                      }))
+                    }
                   />
                   <span>
                     <strong>Power over Ethernet</strong>

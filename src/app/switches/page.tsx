@@ -14,11 +14,18 @@ import {
   Textarea,
 } from "@/components/ui";
 import { useToast } from "@/components/toast";
-import { vendors, type NetworkSwitch, type Port } from "@/domain/models";
+import {
+  switchSchema,
+  vendors,
+  type NetworkSwitch,
+  type Port,
+} from "@/domain/models";
 import { useWorkspace } from "@/features/workspace/workspace-provider";
 import { createSwitch } from "@/services/workspace";
 
-const empty: Omit<NetworkSwitch, "id" | "createdAt" | "updatedAt"> = {
+type SwitchDraft = Omit<NetworkSwitch, "id" | "createdAt" | "updatedAt">;
+
+const empty: SwitchDraft = {
   name: "",
   hostname: "",
   managementIp: "",
@@ -33,47 +40,72 @@ const empty: Omit<NetworkSwitch, "id" | "createdAt" | "updatedAt"> = {
   description: "",
 };
 
+function toDraft(item: NetworkSwitch): SwitchDraft {
+  return {
+    name: item.name,
+    hostname: item.hostname,
+    managementIp: item.managementIp,
+    vendor: item.vendor,
+    model: item.model,
+    serialNumber: item.serialNumber,
+    location: item.location,
+    rack: item.rack,
+    rackUnit: item.rackUnit,
+    portCount: item.portCount,
+    managementVlan: item.managementVlan,
+    description: item.description,
+  };
+}
+
 export default function SwitchesPage() {
   const { workspace, update } = useWorkspace();
   const { notify } = useToast();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<NetworkSwitch | null>(null);
   const [draft, setDraft] = useState(empty);
+  const [formError, setFormError] = useState("");
   const [remove, setRemove] = useState<NetworkSwitch | null>(null);
   if (!workspace) return null;
   const launch = (item?: NetworkSwitch) => {
     setEditing(item ?? null);
-    setDraft(
-      item
-        ? {
-            name: item.name,
-            hostname: item.hostname,
-            managementIp: item.managementIp,
-            vendor: item.vendor,
-            model: item.model,
-            serialNumber: item.serialNumber,
-            location: item.location,
-            rack: item.rack,
-            rackUnit: item.rackUnit,
-            portCount: item.portCount,
-            managementVlan: item.managementVlan,
-            description: item.description,
-          }
-        : empty,
-    );
+    setDraft(item ? toDraft(item) : empty);
+    setFormError("");
     setOpen(true);
   };
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    setFormError("");
+    const timestamp = new Date().toISOString();
+    const result = switchSchema.safeParse({
+      ...draft,
+      id: editing?.id ?? "new-switch",
+      createdAt: editing?.createdAt ?? timestamp,
+      updatedAt: timestamp,
+    });
+    if (!result.success) {
+      setFormError(
+        result.error.issues[0]?.message ?? "Review the switch details.",
+      );
+      return;
+    }
+    const nextDraft = toDraft(result.data);
+    if (
+      nextDraft.managementVlan !== null &&
+      !workspace.vlans.some((vlan) => vlan.id === nextDraft.managementVlan)
+    ) {
+      setFormError(
+        `Management VLAN ${nextDraft.managementVlan} does not exist.`,
+      );
+      return;
+    }
     if (editing) {
       update((value) => {
-        const timestamp = new Date().toISOString();
         let ports = value.ports;
-        if (draft.portCount > editing.portCount)
+        if (nextDraft.portCount > editing.portCount)
           ports = [
             ...ports,
             ...Array.from(
-              { length: draft.portCount - editing.portCount },
+              { length: nextDraft.portCount - editing.portCount },
               (_, i): Port => ({
                 id: `${editing.id}-p${editing.portCount + i + 1}`,
                 switchId: editing.id,
@@ -93,22 +125,23 @@ export default function SwitchesPage() {
                 poeEnabled: false,
                 poePower: null,
                 description: "",
-                location: draft.location,
+                location: nextDraft.location,
                 notes: "",
                 lastModified: timestamp,
               }),
             ),
           ];
-        if (draft.portCount < editing.portCount)
+        if (nextDraft.portCount < editing.portCount)
           ports = ports.filter(
             (port) =>
-              port.switchId !== editing.id || port.number <= draft.portCount,
+              port.switchId !== editing.id ||
+              port.number <= nextDraft.portCount,
           );
         return {
           ...value,
           switches: value.switches.map((item) =>
             item.id === editing.id
-              ? { ...item, ...draft, updatedAt: timestamp }
+              ? { ...item, ...nextDraft, updatedAt: timestamp }
               : item,
           ),
           ports,
@@ -119,7 +152,7 @@ export default function SwitchesPage() {
       });
       notify("Switch updated");
     } else {
-      update((value) => createSwitch(draft, value));
+      update((value) => createSwitch(nextDraft, value));
       notify("Switch created");
     }
     setOpen(false);
@@ -240,7 +273,7 @@ export default function SwitchesPage() {
                   </div>
                 </div>
                 <footer>
-                  <Badge tone="green">Online</Badge>
+                  <Badge tone="blue">Documented</Badge>
                   <span>{item.description}</span>
                   <Link
                     className="button button-secondary"
@@ -276,6 +309,11 @@ export default function SwitchesPage() {
       >
         <form onSubmit={submit}>
           <div className="modal-body form-grid two">
+            {formError && (
+              <p className="form-error" role="alert">
+                {formError}
+              </p>
+            )}
             <Field label="Name">
               <Input
                 required
@@ -295,6 +333,7 @@ export default function SwitchesPage() {
             <Field label="Management IP">
               <Input
                 value={draft.managementIp}
+                aria-invalid={Boolean(formError) || undefined}
                 onChange={(e) =>
                   setDraft({ ...draft, managementIp: e.target.value })
                 }
@@ -427,7 +466,7 @@ export default function SwitchesPage() {
       <Modal
         open={Boolean(remove)}
         title="Delete switch?"
-        description="Its port assignments and discovered devices will also be removed."
+        description="Its port assignments and documented devices will also be removed."
         onClose={() => setRemove(null)}
       >
         <div className="modal-body warning-callout">

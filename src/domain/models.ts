@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  isValidIpAddress,
+  isValidMacAddress,
+  normalizeMacAddress,
+} from "./network-address";
 
 export const vendors = [
   "Aruba",
@@ -53,6 +58,16 @@ export const deviceTypes = [
 
 const text = z.string().trim().max(500);
 const nullableText = z.string().trim().max(500).default("");
+const optionalIpAddress = nullableText.refine(
+  (value) => !value || isValidIpAddress(value),
+  "Must be a valid IPv4 or IPv6 address",
+);
+const optionalMacAddress = nullableText
+  .refine(
+    (value) => !value || isValidMacAddress(value),
+    "Must be a MAC address with colon- or hyphen-separated octets",
+  )
+  .transform((value) => (value ? normalizeMacAddress(value) : ""));
 
 export const vlanSchema = z.object({
   id: z
@@ -69,7 +84,7 @@ export const switchSchema = z.object({
   id: z.string().min(1),
   name: text.min(1),
   hostname: nullableText,
-  managementIp: nullableText,
+  managementIp: optionalIpAddress,
   vendor: z.enum(vendors),
   model: nullableText,
   serialNumber: nullableText,
@@ -83,37 +98,52 @@ export const switchSchema = z.object({
   updatedAt: z.string().datetime(),
 });
 
-export const portSchema = z.object({
-  id: z.string().min(1),
-  switchId: z.string().min(1),
-  number: z.number().int().positive(),
-  name: nullableText,
-  status: z.enum(portStatuses),
-  type: z.enum(portTypes),
-  vlanId: z.number().int().min(1).max(4094).nullable(),
-  nativeVlan: z.number().int().min(1).max(4094).nullable(),
-  taggedVlans: z.array(z.number().int().min(1).max(4094)),
-  connectedDevice: nullableText,
-  deviceType: z.enum(deviceTypes),
-  macAddress: nullableText,
-  ipAddress: nullableText,
-  speed: z.enum(speeds),
-  duplex: z.enum(["Full", "Half", "Auto"]),
-  poeEnabled: z.boolean(),
-  poePower: z.number().min(0).max(100).nullable(),
-  description: nullableText,
-  location: nullableText,
-  notes: nullableText,
-  lastModified: z.string().datetime(),
-});
+export const portSchema = z
+  .object({
+    id: z.string().min(1),
+    switchId: z.string().min(1),
+    number: z.number().int().positive(),
+    name: nullableText,
+    status: z.enum(portStatuses),
+    type: z.enum(portTypes),
+    vlanId: z.number().int().min(1).max(4094).nullable(),
+    nativeVlan: z.number().int().min(1).max(4094).nullable(),
+    taggedVlans: z.array(z.number().int().min(1).max(4094)),
+    connectedDevice: nullableText,
+    deviceType: z.enum(deviceTypes),
+    macAddress: optionalMacAddress,
+    ipAddress: optionalIpAddress,
+    speed: z.enum(speeds),
+    duplex: z.enum(["Full", "Half", "Auto"]),
+    poeEnabled: z.boolean(),
+    poePower: z.number().min(0).max(100).nullable(),
+    description: nullableText,
+    location: nullableText,
+    notes: nullableText,
+    lastModified: z.string().datetime(),
+  })
+  .superRefine((port, ctx) => {
+    if (new Set(port.taggedVlans).size !== port.taggedVlans.length)
+      ctx.addIssue({
+        code: "custom",
+        message: "Tagged VLANs must be unique",
+        path: ["taggedVlans"],
+      });
+    if (!port.poeEnabled && port.poePower !== null)
+      ctx.addIssue({
+        code: "custom",
+        message: "PoE power cannot be set while PoE is disabled",
+        path: ["poePower"],
+      });
+  });
 
 export const deviceSchema = z.object({
   id: z.string(),
   portId: z.string(),
   name: text.min(1),
   hostname: nullableText,
-  ipAddress: nullableText,
-  macAddress: nullableText,
+  ipAddress: optionalIpAddress,
+  macAddress: optionalMacAddress,
   type: z.enum(deviceTypes),
   switchId: z.string(),
   vlanId: z.number().nullable(),
@@ -128,46 +158,158 @@ export const settingsSchema = z.object({
   showPortLabels: z.boolean(),
 });
 
-export const workspaceSchema = z
-  .object({
-    schemaVersion: z.literal(1),
-    exportedAt: z.string().datetime(),
-    switches: z.array(switchSchema),
-    ports: z.array(portSchema),
-    vlans: z.array(vlanSchema),
-    devices: z.array(deviceSchema),
-    settings: settingsSchema,
-  })
-  .superRefine((data, ctx) => {
-    const switchIds = new Set(data.switches.map((item) => item.id));
-    const vlanIds = new Set(data.vlans.map((item) => item.id));
-    if (switchIds.size !== data.switches.length)
+const workspaceEntityShape = {
+  schemaVersion: z.literal(1),
+  exportedAt: z.string().datetime(),
+  switches: z.array(switchSchema),
+  ports: z.array(portSchema),
+  vlans: z.array(vlanSchema),
+  settings: settingsSchema,
+};
+
+type WorkspaceRelations = {
+  switches: Array<z.infer<typeof switchSchema>>;
+  ports: Array<z.infer<typeof portSchema>>;
+  vlans: Array<z.infer<typeof vlanSchema>>;
+  settings: z.infer<typeof settingsSchema>;
+};
+
+export type PortVlanReference = {
+  field: "vlanId" | "nativeVlan" | "taggedVlans";
+  label: "access" | "native" | "tagged";
+  id: number;
+};
+
+export function getMissingPortVlanReferences(
+  port: Pick<
+    z.infer<typeof portSchema>,
+    "vlanId" | "nativeVlan" | "taggedVlans"
+  >,
+  vlanIds: ReadonlySet<number>,
+): PortVlanReference[] {
+  const references: PortVlanReference[] = [];
+  if (port.vlanId !== null)
+    references.push({ field: "vlanId", label: "access", id: port.vlanId });
+  if (port.nativeVlan !== null)
+    references.push({
+      field: "nativeVlan",
+      label: "native",
+      id: port.nativeVlan,
+    });
+  references.push(
+    ...port.taggedVlans.map((id) => ({
+      field: "taggedVlans" as const,
+      label: "tagged" as const,
+      id,
+    })),
+  );
+  return references.filter((reference) => !vlanIds.has(reference.id));
+}
+
+function validateWorkspaceRelations(
+  data: WorkspaceRelations,
+  ctx: z.RefinementCtx,
+) {
+  const switches = new Map(data.switches.map((item) => [item.id, item]));
+  const vlanIds = new Set(data.vlans.map((item) => item.id));
+  const switchIds = new Set<string>();
+  const portIds = new Set<string>();
+  const portNumbers = new Set<string>();
+
+  data.switches.forEach((networkSwitch, index) => {
+    if (switchIds.has(networkSwitch.id))
       ctx.addIssue({
         code: "custom",
-        message: "Switch IDs must be unique",
-        path: ["switches"],
+        message: `Duplicate switch ID “${networkSwitch.id}”`,
+        path: ["switches", index, "id"],
       });
-    if (vlanIds.size !== data.vlans.length)
+    switchIds.add(networkSwitch.id);
+    if (
+      networkSwitch.managementVlan !== null &&
+      !vlanIds.has(networkSwitch.managementVlan)
+    )
       ctx.addIssue({
         code: "custom",
-        message: "VLAN IDs must be unique",
-        path: ["vlans"],
+        message: `Switch ${networkSwitch.name} references missing management VLAN ${networkSwitch.managementVlan}`,
+        path: ["switches", index, "managementVlan"],
       });
-    data.ports.forEach((port, index) => {
-      if (!switchIds.has(port.switchId))
-        ctx.addIssue({
-          code: "custom",
-          message: "Port references an unknown switch",
-          path: ["ports", index, "switchId"],
-        });
-      if (port.vlanId && !vlanIds.has(port.vlanId))
-        ctx.addIssue({
-          code: "custom",
-          message: "Port references an unknown VLAN",
-          path: ["ports", index, "vlanId"],
-        });
+  });
+
+  if (vlanIds.size !== data.vlans.length)
+    ctx.addIssue({
+      code: "custom",
+      message: "VLAN IDs must be unique",
+      path: ["vlans"],
+    });
+
+  data.ports.forEach((port, index) => {
+    const networkSwitch = switches.get(port.switchId);
+    const portLabel = networkSwitch
+      ? `Port ${port.number} on ${networkSwitch.name}`
+      : `Port ${port.number}`;
+    if (portIds.has(port.id))
+      ctx.addIssue({
+        code: "custom",
+        message: `Duplicate port ID “${port.id}”`,
+        path: ["ports", index, "id"],
+      });
+    portIds.add(port.id);
+
+    if (!networkSwitch)
+      ctx.addIssue({
+        code: "custom",
+        message: `${portLabel} references unknown switch “${port.switchId}”`,
+        path: ["ports", index, "switchId"],
+      });
+    else if (port.number > networkSwitch.portCount)
+      ctx.addIssue({
+        code: "custom",
+        message: `${portLabel} exceeds the switch port count of ${networkSwitch.portCount}`,
+        path: ["ports", index, "number"],
+      });
+
+    const numberKey = `${port.switchId}:${port.number}`;
+    if (portNumbers.has(numberKey))
+      ctx.addIssue({
+        code: "custom",
+        message: `Duplicate port ${port.number} on ${networkSwitch?.name ?? port.switchId}`,
+        path: ["ports", index, "number"],
+      });
+    portNumbers.add(numberKey);
+
+    getMissingPortVlanReferences(port, vlanIds).forEach((reference) => {
+      ctx.addIssue({
+        code: "custom",
+        message: `${portLabel} references missing ${reference.label} VLAN ${reference.id}`,
+        path: ["ports", index, reference.field],
+      });
     });
   });
+
+  if (
+    data.settings.defaultSwitchId !== null &&
+    !switches.has(data.settings.defaultSwitchId)
+  )
+    ctx.addIssue({
+      code: "custom",
+      message: "The default switch no longer exists",
+      path: ["settings", "defaultSwitchId"],
+    });
+}
+
+export const workspaceSchema = z
+  .object({
+    ...workspaceEntityShape,
+    devices: z.array(deviceSchema),
+  })
+  .superRefine(validateWorkspaceRelations);
+
+export const workspaceImportSchema = z
+  .object({
+    ...workspaceEntityShape,
+    devices: z.array(z.unknown()).optional().default([]),
+  })
+  .superRefine(validateWorkspaceRelations);
 
 export type NetworkSwitch = z.infer<typeof switchSchema>;
 export type Port = z.infer<typeof portSchema>;
