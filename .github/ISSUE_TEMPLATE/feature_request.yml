@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest an improvement for network documentation workflows
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Operator problem
+      description: What network operations task is difficult today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: local
+    attributes:
+      label: Local-first fit
+      options:
+        - label: This can work without a required cloud service.
+          required: true
