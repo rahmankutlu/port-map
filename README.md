@@ -1,10 +1,24 @@
-# Port Map
+<div align="center">
+  <img src="src/app/icon.svg" width="72" alt="Port Map logo" />
+  <h1>Port Map</h1>
+  <p><strong>Visual switch port management for network teams.</strong></p>
 
-**Visual switch port management for network teams.**
+  [![CI](https://github.com/rahmankutlu/port-map/actions/workflows/ci.yml/badge.svg)](https://github.com/rahmankutlu/port-map/actions/workflows/ci.yml)
+  [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+  [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
+  [![Local first](https://img.shields.io/badge/data-local--first-16845b)](#data-and-privacy)
+</div>
 
 Port Map is a local-first application for documenting network switches, physical ports, VLAN assignments, PoE endpoints, and connected devices. It gives IT technicians, system administrators, and NOC teams a compact operational view without requiring a server or account.
 
-> All data stays in the browser. No account or external database is required.
+> [!IMPORTANT]
+> All data stays in the browser. No account, server, telemetry service, or external database is required.
+
+![Port Map physical switch view](docs/screenshots/port-map.png)
+
+## Why Port Map?
+
+Port documentation often ends up fragmented across spreadsheets, switch configurations, and tribal knowledge. Port Map provides one visual workspace for recording the physical and logical state of a switch estate while remaining straightforward to deploy: open the application and start documenting.
 
 ## Features
 
@@ -18,10 +32,6 @@ Port Map is a local-first application for documenting network switches, physical
 - Browser-local IndexedDB persistence, manual backups, and guarded restore
 - Light, dark, and system themes; responsive navigation and horizontally scrollable hardware panels
 - Keyboard-accessible controls and status cues that do not rely on color alone
-
-## Screenshots
-
-Screenshots will be added with the first tagged release. Run the application locally to explore the included three-switch demo workspace in either light or dark theme.
 
 ## Technology
 
@@ -38,7 +48,7 @@ Screenshots will be added with the first tagged release. Run the application loc
 Requirements: Node.js 20.9 or newer and pnpm 10.
 
 ```bash
-git clone https://github.com/your-org/port-map.git
+git clone https://github.com/rahmankutlu/port-map.git
 cd port-map
 pnpm install
 pnpm dev
@@ -46,17 +56,17 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000). The demo workspace is created on the first visit.
 
-## Development
+## Commands
 
-```bash
-pnpm dev        # start the development server
-pnpm lint       # run ESLint
-pnpm typecheck  # run TypeScript without emitting files
-pnpm test       # run unit and component tests
-pnpm test:e2e   # run the Playwright smoke test
-pnpm build      # create a production build
-pnpm start      # serve the production build
-```
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev` | Start the Turbopack development server |
+| `pnpm lint` | Run ESLint across the repository |
+| `pnpm typecheck` | Type-check without emitting files |
+| `pnpm test` | Run the Vitest suite |
+| `pnpm test:e2e` | Run the Playwright browser smoke test |
+| `pnpm build` | Create and validate a production build |
+| `pnpm start` | Serve a production build |
 
 Install the Playwright browser once before the first end-to-end run:
 
@@ -78,13 +88,36 @@ src/
 e2e/              Playwright smoke tests
 ```
 
+## Architecture
+
+```text
+React pages and feature components
+              │
+              ▼
+      Workspace provider
+              │
+              ▼
+ Pure domain services + Zod schemas
+              │
+              ▼
+       IndexedDB repository
+```
+
 The browser stores one current workspace and independent backup snapshots. UI components mutate data through the workspace service/provider; they never access IndexedDB directly. Device records are rebuilt from connected-device port fields after port changes, keeping the two views consistent.
+
+The export envelope is explicitly versioned with `schemaVersion`. Imports are parsed as untrusted input, validated at the boundary, and shown for confirmation only after validation succeeds. An automatic backup is created before replacement.
 
 ## Data and privacy
 
 Port Map makes no application-level network requests and has no telemetry, user accounts, or server-side storage. Workspace data and backups live in the browser's IndexedDB database for the current site origin. Clearing site data removes them. JSON exports are unencrypted documents; handle them according to your organization's network documentation policy.
 
 Imported files must match the current versioned schema. Port Map validates entity fields and references before presenting the replacement confirmation, then creates a backup of the existing workspace.
+
+Browser data is scoped to the application origin and does not synchronize across browsers or devices. JSON exports are the supported portability and recovery mechanism in v0.1.
+
+## Quality gates
+
+Every pull request runs installation, linting, strict TypeScript checks, unit tests, and a production build in GitHub Actions. The browser smoke test covers initial demo creation, port editing, refresh persistence, and theme switching.
 
 ## Roadmap
 
