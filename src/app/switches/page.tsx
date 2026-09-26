@@ -192,9 +192,9 @@ export default function SwitchesPage() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow="Inventory"
+        eyebrow="02 / Hardware register"
         title="Switches"
-        description="Document managed switches, rack placement, and port capacity."
+        description="Record chassis identity, placement, and physical capacity."
         actions={
           <Button onClick={() => launch()}>
             <Plus size={16} />

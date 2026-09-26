@@ -95,3 +95,18 @@ test("previews imports, rejects malformed JSON, and creates a restorable backup"
     page.getByText("Backup restored", { exact: true }),
   ).toBeVisible();
 });
+
+test("keeps the workspace ledger within a mobile viewport", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", { name: "Workspace index" }),
+  ).toBeVisible();
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.content).toBe(dimensions.viewport);
+});

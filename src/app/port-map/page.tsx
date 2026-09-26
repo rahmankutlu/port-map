@@ -84,9 +84,9 @@ export default function PortMapPage() {
   return (
     <div className="page port-map-page">
       <PageHeader
-        eyebrow="Physical inventory"
+        eyebrow="03 / Physical layer"
         title="Port map"
-        description="Inspect and update physical connections without leaving the switch panel."
+        description="Inspect and update documented connections from the chassis view."
         actions={
           <div className="switch-picker">
             <label htmlFor="switch-picker">Switch</label>

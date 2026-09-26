@@ -1,15 +1,6 @@
 "use client";
 import Link from "next/link";
-import {
-  AlertTriangle,
-  ArrowUpRight,
-  Cable,
-  CircleCheck,
-  EthernetPort,
-  Layers3,
-  Power,
-  Server,
-} from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Cable, CircleCheck } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page";
 import { Badge } from "@/components/ui";
 import { useWorkspace } from "@/features/workspace/workspace-provider";
@@ -20,40 +11,18 @@ export default function Dashboard() {
   const active = workspace.ports.filter(
     (port) => port.status === "Connected",
   ).length;
-  const stats = [
-    ["Switches", workspace.switches.length, Server, "Managed inventory"],
-    [
-      "Total ports",
-      workspace.ports.length,
-      EthernetPort,
-      "Across all switches",
-    ],
-    [
-      "Active",
-      active,
-      CircleCheck,
-      `${Math.round((active / Math.max(1, workspace.ports.length)) * 100)}% utilization`,
-    ],
-    [
-      "Available",
-      workspace.ports.filter((port) => port.status === "Disconnected").length,
-      Cable,
-      "Ready to assign",
-    ],
-    [
-      "PoE active",
-      workspace.ports.filter((port) => port.poeEnabled).length,
-      Power,
-      "Powered endpoints",
-    ],
-    [
-      "Trunks",
-      workspace.ports.filter((port) => ["Trunk", "Uplink"].includes(port.type))
-        .length,
-      ArrowUpRight,
-      "Trunk and uplink",
-    ],
-    ["VLANs", workspace.vlans.length, Layers3, "Configured networks"],
+  const available = workspace.ports.filter(
+    (port) => port.status === "Disconnected",
+  ).length;
+  const poe = workspace.ports.filter((port) => port.poeEnabled).length;
+  const trunks = workspace.ports.filter((port) =>
+    ["Trunk", "Uplink"].includes(port.type),
+  ).length;
+  const totals = [
+    ["Switches", workspace.switches.length, "Documented hardware"],
+    ["Ports", workspace.ports.length, "Physical interfaces"],
+    ["VLANs", workspace.vlans.length, "Network segments"],
+    ["Endpoints", workspace.devices.length, "Derived from ports"],
   ] as const;
   const recent = [...workspace.ports]
     .sort((a, b) => b.lastModified.localeCompare(a.lastModified))
@@ -64,9 +33,9 @@ export default function Dashboard() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow="Overview"
-        title="Network workspace"
-        description="Operational status across your documented switch estate."
+        eyebrow="01 / Local inventory"
+        title="Workspace index"
+        description="A concise record of the switches, ports, and assignments stored in this browser."
         actions={
           <Link
             className="button button-primary"
@@ -74,26 +43,47 @@ export default function Dashboard() {
             prefetch={false}
           >
             <Cable size={16} />
-            Open port map
+            Inspect ports
           </Link>
         }
       />
-      <div className="stat-grid">
-        {stats.map(([label, value, Icon, detail]) => (
-          <div className="stat-card" key={label}>
-            <div className="stat-top">
-              <span>{label}</span>
-              <Icon size={17} />
-            </div>
+      <section className="ledger-strip" aria-label="Workspace totals">
+        {totals.map(([label, value, detail], index) => (
+          <div className="ledger-cell" key={label}>
+            <span>
+              {String(index + 1).padStart(2, "0")} / {label}
+            </span>
             <strong>{value}</strong>
             <small>{detail}</small>
           </div>
         ))}
-      </div>
-      <div className="dashboard-grid">
-        <Panel title="Switch overview" description="Port use by device">
+        <div className="ledger-status">
+          <span>DOCUMENTATION LOAD</span>
+          <strong>
+            {Math.round((active / Math.max(1, workspace.ports.length)) * 100)}%
+          </strong>
+          <div>
+            <i
+              style={{
+                width: `${(active / Math.max(1, workspace.ports.length)) * 100}%`,
+              }}
+            />
+          </div>
+          <small>{active} ports marked connected</small>
+        </div>
+      </section>
+      <div className="dashboard-grid dashboard-primary">
+        <Panel
+          title="Switch register"
+          description="Documented capacity by chassis"
+          action={
+            <span className="panel-count">
+              {workspace.switches.length} units
+            </span>
+          }
+        >
           <div className="switch-overview">
-            {workspace.switches.map((sw) => {
+            {workspace.switches.map((sw, index) => {
               const ports = workspace.ports.filter(
                 (port) => port.switchId === sw.id,
               );
@@ -107,9 +97,9 @@ export default function Dashboard() {
                   className="switch-row"
                   prefetch={false}
                 >
-                  <div className="switch-icon">
-                    <Server size={18} />
-                  </div>
+                  <span className="switch-index">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                   <div className="switch-row-main">
                     <div>
                       <strong>{sw.name}</strong>
@@ -137,8 +127,8 @@ export default function Dashboard() {
           </div>
         </Panel>
         <Panel
-          title="Requires attention"
-          description="Ports that may need review"
+          title="Review queue"
+          description="Documentation that needs a second look"
           action={
             <Badge tone={warnings.length ? "amber" : "green"}>
               {warnings.length} open
@@ -168,7 +158,7 @@ export default function Dashboard() {
                         {port.description || "PoE configuration needs review"}
                       </small>
                     </span>
-                    <Badge tone="amber">Warning</Badge>
+                    <span className="queue-code">REVIEW</span>
                   </Link>
                 );
               })
@@ -181,9 +171,28 @@ export default function Dashboard() {
           </div>
         </Panel>
       </div>
+      <section className="signal-strip" aria-label="Port documentation summary">
+        <div>
+          <span>Connected</span>
+          <strong>{active}</strong>
+        </div>
+        <div>
+          <span>Available</span>
+          <strong>{available}</strong>
+        </div>
+        <div>
+          <span>PoE noted</span>
+          <strong>{poe}</strong>
+        </div>
+        <div>
+          <span>Trunk / uplink</span>
+          <strong>{trunks}</strong>
+        </div>
+        <p>Values reflect documented port state, not live switch telemetry.</p>
+      </section>
       <Panel
-        title="Recently edited ports"
-        description="Latest configuration activity"
+        title="Change ledger"
+        description="Most recently edited port records"
       >
         <div className="table-wrap">
           <table>

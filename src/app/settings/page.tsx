@@ -40,7 +40,7 @@ export default function SettingsPage() {
   return (
     <div className="page settings-page">
       <PageHeader
-        eyebrow="Workspace"
+        eyebrow="07 / Local preferences"
         title="Settings"
         description="Control display preferences and locally stored data."
       />

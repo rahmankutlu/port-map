@@ -81,7 +81,7 @@ export default function ImportExportPage() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow="Data portability"
+        eyebrow="06 / Data custody"
         title="Import / Export"
         description="Move or safeguard the complete local workspace using a versioned JSON file."
         actions={
