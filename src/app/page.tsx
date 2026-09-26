@@ -175,7 +175,7 @@ export default function Dashboard() {
             ) : (
               <div className="inline-empty">
                 <CircleCheck size={20} />
-                <span>All documented ports look healthy.</span>
+                <span>No documented ports require attention.</span>
               </div>
             )}
           </div>

@@ -675,29 +675,28 @@ td > small,
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
-.chassis-health {
+.chassis-status {
   display: flex;
   align-items: center;
   gap: 18px;
 }
-.chassis-health > span {
+.chassis-status > span {
   font-size: 10px;
   color: #8d9ba9;
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.chassis-health > span i {
+.chassis-status > span i {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #40c98a;
-  box-shadow: 0 0 7px #40c98a;
+  background: #75aaf3;
 }
-.chassis-health strong {
+.chassis-status strong {
   font-size: 17px;
 }
-.chassis-health small {
+.chassis-status small {
   font-size: 9px;
   color: #81909f;
   font-weight: 400;
