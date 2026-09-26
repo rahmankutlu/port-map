@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Activity, Search } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page";
@@ -127,12 +128,12 @@ export default function DevicesPage() {
                       <td className="mono">{device.ipAddress || "—"}</td>
                       <td className="mono">{device.macAddress || "—"}</td>
                       <td>
-                        <a
+                        <Link
                           className="table-link"
                           href={`/port-map?switch=${device.switchId}&port=${device.portId}`}
                         >
                           {sw?.name} / {port?.number}
-                        </a>
+                        </Link>
                       </td>
                       <td>{device.vlanId ?? "—"}</td>
                       <td>{device.location || "—"}</td>

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { Copy, MoreHorizontal, Plus, Server, Trash2 } from "lucide-react";
 import { PageHeader, Panel } from "@/components/page";
@@ -241,12 +242,12 @@ export default function SwitchesPage() {
                 <footer>
                   <Badge tone="green">Online</Badge>
                   <span>{item.description}</span>
-                  <a
+                  <Link
                     className="button button-secondary"
                     href={`/port-map?switch=${item.id}`}
                   >
                     View ports
-                  </a>
+                  </Link>
                 </footer>
               </article>
             );

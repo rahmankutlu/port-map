@@ -4,6 +4,12 @@ All notable changes to Port Map are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+
+- GitHub Pages live demo deployment and application discovery metadata
+- Sitemap, robots policy, web manifest, Open Graph, and structured data
+- Automated dependency updates, CodeQL scanning, and repository ownership rules
+
 ## [0.1.0] - 2026-09-26
 
 ### Added

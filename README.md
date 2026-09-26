@@ -3,10 +3,12 @@
   <h1>Port Map</h1>
   <p><strong>Visual switch port management for network teams.</strong></p>
 
-  [![CI](https://github.com/rahmankutlu/port-map/actions/workflows/ci.yml/badge.svg)](https://github.com/rahmankutlu/port-map/actions/workflows/ci.yml)
-  [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-  [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
-  [![Local first](https://img.shields.io/badge/data-local--first-16845b)](#data-and-privacy)
+[![CI](https://github.com/rahmankutlu/port-map/actions/workflows/ci.yml/badge.svg)](https://github.com/rahmankutlu/port-map/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
+[![Local first](https://img.shields.io/badge/data-local--first-16845b)](#data-and-privacy)
+
+[Open live demo](https://rahmankutlu.github.io/port-map/) · [Download v0.1.0](https://github.com/rahmankutlu/port-map/releases/tag/v0.1.0) · [Report an issue](https://github.com/rahmankutlu/port-map/issues/new/choose)
 </div>
 
 Port Map is a local-first application for documenting network switches, physical ports, VLAN assignments, PoE endpoints, and connected devices. It gives IT technicians, system administrators, and NOC teams a compact operational view without requiring a server or account.
@@ -54,19 +56,19 @@ pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The demo workspace is created on the first visit.
+Open [http://localhost:3000](http://localhost:3000). The demo workspace is created on the first visit. You can also explore the public [live demo](https://rahmankutlu.github.io/port-map/) without installing anything.
 
 ## Commands
 
-| Command | Purpose |
-| --- | --- |
-| `pnpm dev` | Start the Turbopack development server |
-| `pnpm lint` | Run ESLint across the repository |
-| `pnpm typecheck` | Type-check without emitting files |
-| `pnpm test` | Run the Vitest suite |
-| `pnpm test:e2e` | Run the Playwright browser smoke test |
-| `pnpm build` | Create and validate a production build |
-| `pnpm start` | Serve a production build |
+| Command          | Purpose                                |
+| ---------------- | -------------------------------------- |
+| `pnpm dev`       | Start the Turbopack development server |
+| `pnpm lint`      | Run ESLint across the repository       |
+| `pnpm typecheck` | Type-check without emitting files      |
+| `pnpm test`      | Run the Vitest suite                   |
+| `pnpm test:e2e`  | Run the Playwright browser smoke test  |
+| `pnpm build`     | Create and validate a production build |
+| `pnpm start`     | Serve a production build               |
 
 Install the Playwright browser once before the first end-to-end run:
 
@@ -131,10 +133,10 @@ SNMP discovery and topology mapping are roadmap items and are not implemented to
 
 ## Contributing
 
-Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before starting a change and report security issues according to [SECURITY.md](SECURITY.md).
+Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before starting a change, use [SUPPORT.md](SUPPORT.md) for help channels, and report security issues according to [SECURITY.md](SECURITY.md).
 
 Useful GitHub topics: `networking`, `network-tools`, `network-management`, `netops`, `switch`, `vlan`, `network-administration`, `nextjs`, `typescript`, `open-source`.
 
 ## License
 
-[MIT](LICENSE) © Port Map contributors.
+[MIT](LICENSE) © Rahman Kutlu.
