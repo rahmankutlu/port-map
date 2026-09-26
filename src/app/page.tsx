@@ -68,7 +68,11 @@ export default function Dashboard() {
         title="Network workspace"
         description="Operational status across your documented switch estate."
         actions={
-          <Link className="button button-primary" href="/port-map">
+          <Link
+            className="button button-primary"
+            href="/port-map"
+            prefetch={false}
+          >
             <Cable size={16} />
             Open port map
           </Link>
@@ -101,6 +105,7 @@ export default function Dashboard() {
                   href={`/port-map?switch=${sw.id}`}
                   key={sw.id}
                   className="switch-row"
+                  prefetch={false}
                 >
                   <div className="switch-icon">
                     <Server size={18} />
@@ -150,6 +155,7 @@ export default function Dashboard() {
                   <Link
                     href={`/port-map?switch=${port.switchId}&port=${port.id}`}
                     key={port.id}
+                    prefetch={false}
                   >
                     <span className="attention-icon">
                       <AlertTriangle size={16} />
@@ -198,6 +204,7 @@ export default function Dashboard() {
                     <Link
                       href={`/port-map?switch=${port.switchId}&port=${port.id}`}
                       className="table-link"
+                      prefetch={false}
                     >
                       Port {port.number}
                     </Link>

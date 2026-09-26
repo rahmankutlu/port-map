@@ -83,6 +83,7 @@ function Shell({ children }: { children: ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={false}
                 onClick={() => setMobileOpen(false)}
                 className={active ? "active" : ""}
                 aria-current={active ? "page" : undefined}
