@@ -4,7 +4,7 @@ test("loads, edits a port, persists refresh, and changes theme", async ({
 }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Workspace index" }),
+    page.getByRole("heading", { name: "Network inventory" }),
   ).toBeVisible();
   await page.getByRole("link", { name: "Port Map" }).first().click();
   await expect(page.getByRole("heading", { name: "Port map" })).toBeVisible();

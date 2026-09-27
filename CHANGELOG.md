@@ -6,9 +6,9 @@ All notable changes to Port Map are documented here. The format follows [Keep a 
 
 ### Changed
 
-- Reworked the application into a technical network-record workbench with a numbered module index
-- Replaced the dashboard card grid with an inventory ledger, review queue, and documented-state summary
-- Refined switch cards, tables, filters, forms, dialogs, dark mode, and responsive layouts around a flatter industrial visual system
+- Reworked navigation and the dashboard into a calmer, inventory-first interface with clearer hierarchy
+- Replaced the dense metric grid with a contextual workspace summary, switch utilization list, review queue, and recent-change table
+- Refined cards, tables, filters, forms, dialogs, dark mode, and responsive layouts with a cohesive product visual system
 
 ## [0.1.1] - 2026-09-26
 

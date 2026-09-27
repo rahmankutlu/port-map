@@ -84,7 +84,7 @@ export default function PortMapPage() {
   return (
     <div className="page port-map-page">
       <PageHeader
-        eyebrow="03 / Physical layer"
+        eyebrow="Physical ports"
         title="Port map"
         description="Inspect and update documented connections from the chassis view."
         actions={

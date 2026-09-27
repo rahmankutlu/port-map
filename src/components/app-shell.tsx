@@ -24,55 +24,13 @@ import {
 import { ToastProvider } from "./toast";
 
 const nav = [
-  {
-    href: "/",
-    label: "Overview",
-    detail: "Workspace index",
-    code: "01",
-    icon: LayoutDashboard,
-  },
-  {
-    href: "/switches",
-    label: "Switches",
-    detail: "Hardware register",
-    code: "02",
-    icon: Boxes,
-  },
-  {
-    href: "/port-map",
-    label: "Port map",
-    detail: "Physical ports",
-    code: "03",
-    icon: Cable,
-  },
-  {
-    href: "/vlans",
-    label: "VLANs",
-    detail: "Segmentation",
-    code: "04",
-    icon: Network,
-  },
-  {
-    href: "/devices",
-    label: "Devices",
-    detail: "Derived endpoints",
-    code: "05",
-    icon: Activity,
-  },
-  {
-    href: "/import-export",
-    label: "Data",
-    detail: "Import & backup",
-    code: "06",
-    icon: Download,
-  },
-  {
-    href: "/settings",
-    label: "Settings",
-    detail: "Local preferences",
-    code: "07",
-    icon: Settings,
-  },
+  { href: "/", label: "Overview", icon: LayoutDashboard },
+  { href: "/switches", label: "Switches", icon: Boxes },
+  { href: "/port-map", label: "Port map", icon: Cable },
+  { href: "/vlans", label: "VLANs", icon: Network },
+  { href: "/devices", label: "Devices", icon: Activity },
+  { href: "/import-export", label: "Import & export", icon: Download },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 function Shell({ children }: { children: ReactNode }) {
@@ -104,10 +62,12 @@ function Shell({ children }: { children: ReactNode }) {
     >
       <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`}>
         <div className="sidebar-brand">
-          <span className="brand-mark">P/M</span>
+          <span className="brand-mark">
+            <Cable size={20} />
+          </span>
           <span className="brand-copy">
-            <strong>PORT MAP</strong>
-            <small>Physical network records</small>
+            <strong>Port Map</strong>
+            <small>Local network inventory</small>
           </span>
           <button
             className="mobile-close"
@@ -118,7 +78,7 @@ function Shell({ children }: { children: ReactNode }) {
           </button>
         </div>
         <nav aria-label="Main navigation">
-          <span className="nav-label">Workspace index</span>
+          <span className="nav-label">Inventory</span>
           {nav.map((item) => {
             const active = pathname === item.href;
             const Icon = item.icon;
@@ -132,12 +92,8 @@ function Shell({ children }: { children: ReactNode }) {
                 aria-current={active ? "page" : undefined}
                 title={collapsed ? item.label : undefined}
               >
-                <span className="nav-code">{item.code}</span>
                 <Icon size={17} />
-                <span className="nav-copy">
-                  <strong>{item.label}</strong>
-                  <small>{item.detail}</small>
-                </span>
+                <span>{item.label}</span>
               </Link>
             );
           })}
@@ -176,14 +132,14 @@ function Shell({ children }: { children: ReactNode }) {
             <Menu size={20} />
           </button>
           <div className="breadcrumbs">
-            <span>Module {activeRoute.code}</span>
+            <span>Port Map</span>
+            <b>/</b>
             <strong>{activeRoute.label}</strong>
           </div>
           <div className="topbar-meta">
-            <span className="local-chip">Local only</span>
             <span className="saved">
               <span className="status-dot" />
-              Browser data ready
+              Saved locally
             </span>
             {theme === "dark" ? <Moon size={16} /> : <Sun size={16} />}
           </div>

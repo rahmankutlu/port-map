@@ -192,7 +192,7 @@ export default function SwitchesPage() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow="02 / Hardware register"
+        eyebrow="Switch inventory"
         title="Switches"
         description="Record chassis identity, placement, and physical capacity."
         actions={

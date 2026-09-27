@@ -116,7 +116,7 @@ export default function VlansPage() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow="04 / Segmentation register"
+        eyebrow="Network segmentation"
         title="VLANs"
         description="Maintain the VLAN catalog used across port assignments."
         actions={

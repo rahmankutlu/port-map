@@ -102,7 +102,7 @@ test("keeps the workspace ledger within a mobile viewport", async ({
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Workspace index" }),
+    page.getByRole("heading", { name: "Network inventory" }),
   ).toBeVisible();
   const dimensions = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,

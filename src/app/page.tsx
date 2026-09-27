@@ -33,9 +33,9 @@ export default function Dashboard() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow="01 / Local inventory"
-        title="Workspace index"
-        description="A concise record of the switches, ports, and assignments stored in this browser."
+        eyebrow="Workspace overview"
+        title="Network inventory"
+        description="Switches, port assignments, and network records stored locally in this browser."
         actions={
           <Link
             className="button button-primary"
@@ -48,17 +48,20 @@ export default function Dashboard() {
         }
       />
       <section className="ledger-strip" aria-label="Workspace totals">
-        {totals.map(([label, value, detail], index) => (
+        <div className="summary-intro">
+          <span>Local workspace</span>
+          <strong>Your network records, at a glance.</strong>
+          <p>No live polling. Every value reflects documented data.</p>
+        </div>
+        {totals.map(([label, value, detail]) => (
           <div className="ledger-cell" key={label}>
-            <span>
-              {String(index + 1).padStart(2, "0")} / {label}
-            </span>
+            <span>{label}</span>
             <strong>{value}</strong>
             <small>{detail}</small>
           </div>
         ))}
         <div className="ledger-status">
-          <span>DOCUMENTATION LOAD</span>
+          <span>Ports marked connected</span>
           <strong>
             {Math.round((active / Math.max(1, workspace.ports.length)) * 100)}%
           </strong>
@@ -69,13 +72,15 @@ export default function Dashboard() {
               }}
             />
           </div>
-          <small>{active} ports marked connected</small>
+          <small>
+            {active} of {workspace.ports.length} documented ports
+          </small>
         </div>
       </section>
       <div className="dashboard-grid dashboard-primary">
         <Panel
-          title="Switch register"
-          description="Documented capacity by chassis"
+          title="Switch inventory"
+          description="Documented port use by switch"
           action={
             <span className="panel-count">
               {workspace.switches.length} units
@@ -83,7 +88,7 @@ export default function Dashboard() {
           }
         >
           <div className="switch-overview">
-            {workspace.switches.map((sw, index) => {
+            {workspace.switches.map((sw) => {
               const ports = workspace.ports.filter(
                 (port) => port.switchId === sw.id,
               );
@@ -97,8 +102,8 @@ export default function Dashboard() {
                   className="switch-row"
                   prefetch={false}
                 >
-                  <span className="switch-index">
-                    {String(index + 1).padStart(2, "0")}
+                  <span className="switch-icon-mini">
+                    <Cable size={15} />
                   </span>
                   <div className="switch-row-main">
                     <div>
@@ -158,7 +163,7 @@ export default function Dashboard() {
                         {port.description || "PoE configuration needs review"}
                       </small>
                     </span>
-                    <span className="queue-code">REVIEW</span>
+                    <Badge tone="amber">Review</Badge>
                   </Link>
                 );
               })
@@ -188,10 +193,9 @@ export default function Dashboard() {
           <span>Trunk / uplink</span>
           <strong>{trunks}</strong>
         </div>
-        <p>Values reflect documented port state, not live switch telemetry.</p>
       </section>
       <Panel
-        title="Change ledger"
+        title="Recent changes"
         description="Most recently edited port records"
       >
         <div className="table-wrap">

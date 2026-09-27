@@ -20,7 +20,17 @@ Port Map is local-first: it has no account system, backend, or telemetry. It
 documents user-entered network data but does not monitor switches. SNMP
 discovery is not currently implemented.
 
-![Port Map physical switch view](docs/screenshots/port-map.png)
+## Interface preview
+
+![Port Map network inventory overview](docs/screenshots/port-map-v011-overview.png)
+
+<details>
+<summary>View the physical port workspace</summary>
+<br />
+
+![Port Map physical switch view](docs/screenshots/port-map-v011-ports.png)
+
+</details>
 
 ## Why Port Map?
 

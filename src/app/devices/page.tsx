@@ -39,7 +39,7 @@ export default function DevicesPage() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow="05 / Derived register"
+        eyebrow="Connected endpoints"
         title="Devices"
         description="An automatically maintained inventory derived from port assignments."
       />
